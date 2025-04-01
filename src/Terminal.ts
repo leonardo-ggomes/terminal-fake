@@ -352,6 +352,9 @@ Lista de comandos disponíveis:
 
     // Comando 'mkdir' - Cria um novo diretório
     private handleMkdir(commandParts: string[]): void {
+
+        if(!commandParts[1]) return this.displayOutput(`comando inválido`);;
+
         const newDir = commandParts[1];
 
         if (this.directories[`${this.currentDir}${newDir}/`]) {
