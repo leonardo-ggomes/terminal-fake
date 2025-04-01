@@ -3,6 +3,7 @@
 
 > 🖥️ Um terminal fictício para enganar curiosos!
 
+<img src="terminalfake.gif" />
 
 [Terminal Fake Link](https://terminalfake.netlify.app/)
 
