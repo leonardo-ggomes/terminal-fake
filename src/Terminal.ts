@@ -352,20 +352,35 @@ Lista de comandos disponíveis:
 
     // Comando 'mkdir' - Cria um novo diretório
     private handleMkdir(commandParts: string[]): void {
-
-        if(!commandParts[1]) return this.displayOutput(`comando inválido`);;
-
-        const newDir = commandParts[1];
-
-        if (this.directories[`${this.currentDir}${newDir}/`]) {
-            this.showError(` \'${newDir}\' diretório já existe`);
-            return;
+        if (commandParts.length < 2) {
+            return this.displayOutput(`Erro: comando inválido. Use: mkdir <nome_do_diretorio>`);
         }
-
-        this.directories[`${this.currentDir}${newDir}/`] = { name: newDir, contentFile: [], contentDir: [] };
-        this.directories[this.currentDir].contentDir.push(newDir);
-
-        this.displayOutput(`diretório criado`);
+    
+        // Expressão regular para validar nomes de diretório (apenas letras, números, _ e -)
+        const dirNameRegex = /^[a-zA-Z0-9_-]+$/;
+    
+        for (let index = 1; index < commandParts.length; index++) {
+            const newDir = commandParts[index];
+    
+            // Verifica se contém caracteres inválidos
+            if (!dirNameRegex.test(newDir)) {
+                this.showError(`Erro: nome de diretório '${newDir}' contém caracteres inválidos!`);
+                continue;
+            }
+    
+            const fullPath = `${this.currentDir}${newDir}/`;
+    
+            if (this.directories[fullPath]) {
+                this.showError(`Erro: o diretório '${newDir}' já existe`);
+                continue;
+            }
+    
+            // Criar novo diretório
+            this.directories[fullPath] = { name: newDir, contentFile: [], contentDir: [] };
+            this.directories[this.currentDir].contentDir.push(newDir);
+    
+            this.displayOutput(`Diretório '${newDir}' criado com sucesso`);
+        }
     }
 
     // Exibe a saída no terminal
