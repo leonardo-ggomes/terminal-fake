@@ -1,7 +1,10 @@
 
 # 🎭 Terminal Fake  
 
-> 🖥️ Um terminal fictício para enganar curiosos!  
+> 🖥️ Um terminal fictício para enganar curiosos!
+
+
+[Terminal Fake Link](https://terminalfake.netlify.app/)
 
 O **Terminal Fake** é um projeto criado com **Vite**, que simula um terminal real para pegadinhas ou aprendizado.  
 
