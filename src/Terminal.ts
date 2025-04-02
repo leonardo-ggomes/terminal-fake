@@ -1,21 +1,24 @@
-type File = {
+import Desktop from "./Desktop";
+
+export type File = {
     name: string;
     content: string;
 };
 
-type Dir = {
+export type Dir = {
     name: string;
     contentFile: File[];
-    contentDir: string[];
+    contentDir:  Dir[];
 };
 
 export default class Terminal {
 
     user: string
     host: string
+    desktop = new Desktop(this)
+    terminalContainer: HTMLDivElement;
 
-    private terminal: HTMLDivElement;
-    private directories: { [key: string]: Dir };
+    directories: { [key: string]: Dir };
     private currentDir: string;
     private isNanoOpen = false
 
@@ -23,39 +26,39 @@ export default class Terminal {
 
         this.user = "usuario"
         this.host = "local.lg"
-        this.terminal = document.createElement("div");
+        this.terminalContainer = document.createElement("div");
         this.directories = {};
         this.currentDir = "/";
 
-        // Define o estilo inline do terminal
+        // Define o estilo inline do terminalContainer
         this.setTerminalStyle();
 
         // Inicializa os diretórios
         this.initializeDirectories();
 
-        // Adiciona o terminal na página
-        document.body.prepend(this.terminal);
+        // Adiciona o terminalContainer na página
+        document.body.prepend(this.terminalContainer);
     }
 
-    // Configura os estilos do terminal
+    // Configura os estilos do terminalContainer
     private setTerminalStyle(): void {
-        this.terminal.id = "terminal";
-        this.terminal.style.height = "100%";
-        this.terminal.style.whiteSpace = "pre-wrap";
-        this.terminal.style.backgroundColor = "#000";
-        this.terminal.style.color = "#fff";
-        this.terminal.style.fontFamily = "monospace";
-        this.terminal.style.fontSize = "16px";
-        this.terminal.style.overflowY = "auto";
-        this.terminal.style.display = "flex";
-        this.terminal.style.flexDirection = "column";
-        this.terminal.style.justifyContent = "flex-start";
-        this.terminal.style.padding = "2px";
+        this.terminalContainer.id = "terminalContainer";
+        this.terminalContainer.style.height = "100%";
+        this.terminalContainer.style.whiteSpace = "pre-wrap";
+        this.terminalContainer.style.backgroundColor = "#000";
+        this.terminalContainer.style.color = "#fff";
+        this.terminalContainer.style.fontFamily = "monospace";
+        this.terminalContainer.style.fontSize = "16px";
+        this.terminalContainer.style.overflowY = "auto";
+        this.terminalContainer.style.display = "flex";
+        this.terminalContainer.style.flexDirection = "column";
+        this.terminalContainer.style.justifyContent = "flex-start";
+        this.terminalContainer.style.padding = "2px";
 
         const autor = document.createElement("p")
         autor.innerText = "// Criado por Leonardo G \n"
         autor.style.color = "gray"
-        this.terminal.appendChild(autor)
+        this.terminalContainer.appendChild(autor)
     }
 
     // Inicializa a estrutura de diretórios e arquivos fictícios
@@ -63,17 +66,35 @@ export default class Terminal {
         this.directories[this.currentDir] = { name: this.currentDir, contentFile: [], contentDir: [] };
 
         // Simulação de pastas do sistema
-        const systemDirs = ["bin", "home", "var"];
+        const systemDirs = [
+            {
+                name: "bin",
+                contentFile: [],
+                contentDir: []
+            }, 
+            {
+                name: "home",
+                contentFile: [],
+                contentDir: []
+            }, 
+            {
+                name: "var",
+                contentFile: [],
+                contentDir: []
+            }          
+        
+        ];
+
         systemDirs.forEach(sysdir => {
-            const path = `${this.currentDir}${sysdir}/`;
+            const path = `${this.currentDir}${sysdir.name}/`;
             this.directories[this.currentDir].contentDir.push(sysdir);
-            this.directories[path] = { name: sysdir, contentFile: [], contentDir: [] };
+            this.directories[path] = sysdir;
         });
 
         this.addNewCommandLine();  // Adiciona o prompt inicial
     }
 
-    // Adiciona uma nova linha de comando ao terminal
+    // Adiciona uma nova linha de comando ao terminalContainer
     public addNewCommandLine(): void {
         const commandLine = document.createElement("div");
         commandLine.style.display = "flex";
@@ -106,11 +127,11 @@ export default class Terminal {
             }
         });
 
-        this.terminal.appendChild(commandLine);
+        this.terminalContainer.appendChild(commandLine);
         input.focus();
     }
 
-    // Processa o comando inserido no terminal
+    // Processa o comando inserido no terminalContainer
     private processCommand(command: string): void {
         const commandParts = command.trim().split(" ");
         const baseCommand = commandParts[0];
@@ -152,6 +173,9 @@ export default class Terminal {
             case "help":
                 this.handleHelp();
                 break;
+            case "startfx":
+                this.desktop.loadDesktop(this.directories)
+                break;
             default:
                 this.showError(`'${baseCommand}' Comando não encontrado`);
                 break;
@@ -174,7 +198,7 @@ Lista de comandos disponíveis:
 
 🖥️ ifconfig - Mostra informações de rede
 🖥️ top - Lista processos ativos
-🖥️ clear - Limpa o terminal
+🖥️ clear - Limpa o terminalContainer
 🖥️ help - Mostra esta lista de comandos
 
 ⚠️ Para mais informações, consulte a documentação do sistema.
@@ -182,9 +206,9 @@ Lista de comandos disponíveis:
         this.displayOutput(helpText);
     }
 
-    // Limpa o terminal
+    // Limpa o terminalContainer
     private handleClear(): void {
-        this.terminal.innerHTML = ""; // Remove tudo do terminal
+        this.terminalContainer.innerHTML = ""; // Remove tudo do terminalContainer
     }
 
     // Remove um diretório vazio
@@ -209,7 +233,7 @@ Lista de comandos disponíveis:
 
         delete this.directories[dirPath];
         const parentDir = this.directories[this.currentDir];
-        parentDir.contentDir = parentDir.contentDir.filter(d => d !== dirName);
+        parentDir.contentDir = parentDir.contentDir.filter(d => d.name !== dirName);
 
         this.displayOutput(`Diretório '${dirName}' removido.`);
     }
@@ -296,7 +320,7 @@ Lista de comandos disponíveis:
 
         pre.textContent = output; // Adicionar saída formatada no <pre>
 
-        this.terminal.appendChild(pre); // Exibir no terminal
+        this.terminalContainer.appendChild(pre); // Exibir no terminalContainer
     }
     // Comando 'ls' - Lista diretórios e arquivos
     private handleLs(commandParts: string[]): void {
@@ -309,7 +333,7 @@ Lista de comandos disponíveis:
         }
 
         let output = '';
-        targetDir.contentDir.forEach(subDir => output += subDir + '  ');
+        targetDir.contentDir.forEach(subDir => output += subDir.name + '  ');
         targetDir.contentFile.forEach(file => output += file.name + '  ');
 
         this.displayOutput(output);
@@ -351,7 +375,7 @@ Lista de comandos disponíveis:
     }
 
     // Comando 'mkdir' - Cria um novo diretório
-    private handleMkdir(commandParts: string[]): void {
+    handleMkdir(commandParts: string[]): void {
         if (commandParts.length < 2) {
             return this.displayOutput(`Erro: comando inválido. Use: mkdir <nome_do_diretorio>`);
         }
@@ -376,21 +400,22 @@ Lista de comandos disponíveis:
             }
     
             // Criar novo diretório
-            this.directories[fullPath] = { name: newDir, contentFile: [], contentDir: [] };
-            this.directories[this.currentDir].contentDir.push(newDir);
-    
+            const dir = { name: newDir, contentFile: [], contentDir: [] };
+            this.directories[fullPath] = dir
+            this.directories[this.currentDir].contentDir.push(dir);
+           
             this.displayOutput(`Diretório '${newDir}' criado com sucesso`);
         }
     }
 
-    // Exibe a saída no terminal
+    // Exibe a saída no terminalContainer
     private displayOutput(output: string, background?: string, color?: string): void {
         const commandLine = document.createElement("div");
         commandLine.textContent = output;
         background && (commandLine.style.backgroundColor = background);
         color ? commandLine.style.color = color : commandLine.style.color = "#fff";
 
-        this.terminal.appendChild(commandLine);
+        this.terminalContainer.appendChild(commandLine);
     }
 
     // Exibe uma mensagem de erro
@@ -398,7 +423,7 @@ Lista de comandos disponíveis:
         const errorLine = document.createElement("div");
         errorLine.textContent = error;
         errorLine.style.color = "#fff";  // Cor de erro
-        this.terminal.appendChild(errorLine);
+        this.terminalContainer.appendChild(errorLine);
     }
 
     private handleNano(commandParts: string[]): void {
@@ -419,12 +444,12 @@ Lista de comandos disponíveis:
         // Impede novos prompts e comandos
         this.isNanoOpen = true;
 
-        // Esconde o prompt e input do terminal
-        const inputField = document.getElementById("terminal-input");
+        // Esconde o prompt e input do terminalContainer
+        const inputField = document.getElementById("terminalContainer-input");
         if (inputField) inputField.style.display = "none";
 
         // Remove completamente qualquer prompt antes do `nano`
-        this.terminal.innerHTML = "";
+        this.terminalContainer.innerHTML = "";
 
         // Cria o editor (Nano)
         const editor = document.createElement("div");
@@ -450,7 +475,7 @@ Lista de comandos disponíveis:
         }
 
         editor.innerText = content;
-        this.terminal.appendChild(editor);
+        this.terminalContainer.appendChild(editor);
 
         // Coloca o cursor na última linha do editor
         setTimeout(() => {
@@ -479,7 +504,7 @@ Lista de comandos disponíveis:
 
         const exitEditor = () => {
             document.removeEventListener("keydown", handleKeyDown);
-            this.terminal.innerHTML = "";
+            this.terminalContainer.innerHTML = "";
 
             if (inputField) inputField.style.display = "block";
 
@@ -505,5 +530,5 @@ Lista de comandos disponíveis:
 
 }
 
-// Inicialização do terminal
+// Inicialização do terminalContainer
 document.addEventListener("DOMContentLoaded", () => new Terminal())
