@@ -1,0 +1,18 @@
+{
+  "name": "terminal",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "author": {
+    "name": "Leonardo Garcia"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "~5.7.2",
+    "vite": "^6.2.0"
+  }
+}
